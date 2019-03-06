@@ -1,0 +1,26 @@
+server:
+  port: 8222
+spring:
+  application:
+    name: ly-getway
+eureka:
+  client:
+    service-url:
+      defaultZone: http://127.0.0.1:8888/eureka
+zuul:
+  prefix: /api # 添加路由前缀
+  routes:
+    item-service: /item/**
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 5000 #熔断超时时长
+
+ribbon:
+  ConnectTimeout: 1000 #ribbon连接超时时长
+  ReadTimeout: 3500 #ribbon读取超时池昌
+  MaxAutoRetries: 0 #当服务重试次数
+  MaxAutoRetriesNextServer: 0 # 切换服务重试次数
