@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
-public class LyExcption extends RuntimeException {
+public class LyException extends RuntimeException {
         private ExceptionEnum exceptionEnum;
 
 

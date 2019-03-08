@@ -2,7 +2,7 @@ package com.leyou.item.web;
 
 import com.alibaba.fastjson.JSON;
 import com.leyou.common.enums.ExceptionEnum;
-import com.leyou.common.excption.LyExcption;
+import com.leyou.common.excption.LyException;
 import com.leyou.common.utills.AESUtils;
 import com.leyou.common.utills.CommonUtils;
 import com.leyou.common.utills.MD5;
@@ -41,13 +41,13 @@ public class UserController {
 
             password= MD5.encryptPassword ( password, password);
 
-             userget = userService.getUser(user.getUsername());
+            userget = userService.getUser(user.getUsername());
             if(userget==null){
-                throw   new LyExcption(ExceptionEnum.USER_NULL);
+                throw   new LyException(ExceptionEnum.USER_NULL);
             }
             if (!userget.getPassword().equals(password)){
 
-                throw   new LyExcption(ExceptionEnum.USER_NULL);
+                throw   new LyException(ExceptionEnum.USER_NULL);
 
             }else {
 

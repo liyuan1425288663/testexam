@@ -1,8 +1,8 @@
 package com.leyou.item.service;
 
 import com.leyou.common.enums.ExceptionEnum;
-import com.leyou.common.excption.LyExcption;
-import com.leyou.common.utills.MD5;
+
+import com.leyou.common.excption.LyException;
 import com.leyou.entity.User;
 import com.leyou.item.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +21,7 @@ public class UserService {
 
         //判断结果
         if (userget==null){
-            throw   new LyExcption(ExceptionEnum.USER_NULL);
+            throw   new LyException(ExceptionEnum.USER_NULL);
         }
         return userget;
     }

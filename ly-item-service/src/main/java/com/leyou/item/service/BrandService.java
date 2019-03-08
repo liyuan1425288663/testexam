@@ -3,7 +3,7 @@ package com.leyou.item.service;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.leyou.common.enums.ExceptionEnum;
-import com.leyou.common.excption.LyExcption;
+import com.leyou.common.excption.LyException;
 import com.leyou.common.vo.PageResult;
 import com.leyou.entity.Brand;
 import com.leyou.item.mapper.BrandMapper;
@@ -43,7 +43,7 @@ public class BrandService {
         //查询
         List<Brand> list = brandMapper.selectByExample(example);
         if (CollectionUtils.isEmpty(list)){
-            throw new LyExcption(ExceptionEnum.BRAND_NOT_FOUN);
+            throw new LyException(ExceptionEnum.BRAND_NOT_FOUN);
         }
         PageInfo<Brand> brandPageInfo = new PageInfo<>(list);
 
@@ -57,13 +57,13 @@ public class BrandService {
         int insert = brandMapper.insert(brand);
 
         if (insert !=1){
-            throw new LyExcption(ExceptionEnum.BRAND_SAVE_ERROR);
+            throw new LyException(ExceptionEnum.BRAND_SAVE_ERROR);
         }
         //新增中间表
         for (Long cid : cids) {
             int i = brandMapper.insertCategoryBrand(cid, brand.getId());
             if (i!=1){
-                throw new LyExcption(ExceptionEnum.BRAND_NOT_FOUN);
+                throw new LyException(ExceptionEnum.BRAND_NOT_FOUN);
             }
         }
     }
