@@ -42,6 +42,7 @@ public class BrandService {
         }
         //查询
         List<Brand> list = brandMapper.selectByExample(example);
+
         if (CollectionUtils.isEmpty(list)){
             throw new LyException(ExceptionEnum.BRAND_NOT_FOUN);
         }

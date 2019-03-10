@@ -6,6 +6,7 @@ import com.leyou.entity.Category;
 import com.leyou.item.service.CategoryService;
 import com.leyou.item.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,7 +33,14 @@ public class CategoryController {
 
         return ResponseEntity.ok(categoryService.quertCategoryList(pid));
     }
-
+    @GetMapping("bid/{bid}")
+    public ResponseEntity<List<Category>> queryByBrandId(@PathVariable("bid") Long bid){
+        List<Category> list = this.categoryService.queryByBrandId(bid);
+        if(list == null || list.size() < 1){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        return ResponseEntity.ok(list);
+    }
 
 
 }
