@@ -4,6 +4,7 @@ import com.leyou.entity.Category;
 
 import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Select;
+import tk.mybatis.mapper.additional.idlist.IdListMapper;
 import tk.mybatis.mapper.common.Mapper;
 
 import org.apache.ibatis.annotations.Param;
@@ -13,7 +14,7 @@ import java.util.List;
 
 
 @org.apache.ibatis.annotations.Mapper
-public interface CategoryMapper extends Mapper<Category> {
+public interface CategoryMapper extends Mapper<Category>, IdListMapper<Category,Long> {
 
     /**
      * 根据品牌id查询商品分类

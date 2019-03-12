@@ -20,9 +20,9 @@ public class CategoryService {
         category.setParentId(pid);
         List<Category> list = categoryMapper.select(category);
         //判断结果
-         if (CollectionUtils.isEmpty(list)){
-                throw   new LyException(ExceptionEnum.PRICE_CANNOT_BE_NULL);
-         }
+        if (CollectionUtils.isEmpty(list)){
+            throw   new LyException(ExceptionEnum.PRICE_CANNOT_BE_NULL);
+        }
         return  list;
 
     }
@@ -30,4 +30,14 @@ public class CategoryService {
     public List<Category> queryByBrandId(Long bid) {
         return this.categoryMapper.queryByBrandId(bid);
     }
+
+    public List<Category>queryByIds(List<Long> ids){
+        List<Category> list = categoryMapper.selectByIdList(ids);
+        //判断结果
+        if (CollectionUtils.isEmpty(list)){
+            throw   new LyException(ExceptionEnum.PRICE_CANNOT_BE_NULL);
+        }
+        return  list;
+    }
+
 }

@@ -14,6 +14,7 @@ public enum  ExceptionEnum{
     CATEGORY_NOT_FOND(404,"商品分类没查到!"),
     SPEC_GROUP_NOT_FOND(404,"商品分类没查到!"),
     SPEC_PARAM_NOT_FOND(404,"商品参数不存在!"),
+    GOODS_NOT_FOND(404,"商品参数不存在!"),
     USER_NULL(400,"账号密码错误"),
     BRAND_NOT_FOUN(404,"品牌没查到!"),
     BRAND_SAVE_ERROR(500,"新增品牌失败"),
