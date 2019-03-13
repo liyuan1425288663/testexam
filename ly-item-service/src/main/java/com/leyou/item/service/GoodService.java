@@ -6,19 +6,23 @@ import com.github.pagehelper.PageInfo;
 import com.leyou.common.enums.ExceptionEnum;
 import com.leyou.common.excption.LyException;
 import com.leyou.common.vo.PageResult;
-import com.leyou.entity.Category;
-import com.leyou.entity.Spu;
-import com.leyou.entity.SpuDetail;
+import com.leyou.entity.*;
+import com.leyou.item.mapper.SkuMapper;
 import com.leyou.item.mapper.SpuDetailMapper;
 import com.leyou.item.mapper.SpuMapper;
+import com.leyou.item.mapper.StockMapper;
 import com.sun.org.apache.xpath.internal.operations.Lt;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import tk.mybatis.mapper.entity.Example;
 
+import java.beans.Transient;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,6 +36,10 @@ public class GoodService {
     private  CategoryService categoryService;
     @Autowired
     private  BrandService brandService;
+    @Autowired
+    private SkuMapper skuMapper;
+    @Autowired
+    private StockMapper stockMapper;
 
     public PageResult<Spu> queryBradByPage(Integer page, Integer rows, Boolean saleable, Boolean desc, String key){
         //分页
@@ -75,5 +83,51 @@ public class GoodService {
             //处理品牌名称
             spu.setBname(brandService.queryById(spu.getBrandId()).getName());
         }
+    }
+
+    @Transactional
+    public void saveGoods(Spu spu){
+        //新增Spu
+        spu.setCreateTime(new Date());
+        spu.setId(null);
+        spu.setLastUpdateTime(spu.getCreateTime());
+        spu.setSaleable(true);
+        spu.setValid(false);
+        int insert = spuMapper.insert(spu);
+        if (insert!=1 ){
+            throw  new LyException(ExceptionEnum.GOOD_SAVE_ERROR);
+        }
+        //新增 datail
+        SpuDetail spuDetail = spu.getSpuDetail();
+        spuDetail.setSpuId(spu.getId());
+        spuDetailMapper.insert(spuDetail);
+        //新增sku
+        //定义库存集合
+
+        ArrayList<Stock> StockList = new ArrayList<>();
+
+        List<Sku> skus = spu.getSkus();
+
+        for (Sku sku : skus) {
+            sku.setCreateTime(new Date());
+            sku.setLastUpdateTime(sku.getCreateTime());
+            sku.setSpuId(spu.getId());
+            insert = skuMapper.insert(sku);
+
+            if (insert!=1 ){
+                throw  new LyException(ExceptionEnum.GOOD_SAVE_ERROR);
+            }
+            //新增库存
+            Stock stock = new Stock();
+            stock.setSkuId(sku.getId());
+            stock.setStock(sku.getStock());
+            //添加到集合
+            StockList.add(stock);
+
+        }
+        //批量添加库存
+        stockMapper.insertList(StockList);
+
+
     }
 }

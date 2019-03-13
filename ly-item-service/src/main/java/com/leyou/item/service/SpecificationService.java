@@ -17,7 +17,7 @@ public class SpecificationService {
     @Autowired
     private SpecGroupMapper specGroupMapper;
     @Autowired
-    private SpecParamMapper Param;
+    private SpecParamMapper specParamMapper;
 
     public List<SpecGroup> queryGroupByCid(Long cid){
         //查询条件
@@ -33,11 +33,12 @@ public class SpecificationService {
         return  list;
     }
 
-    public List<SpecParam> queryParamByGid(Long gid){
+    public List<SpecParam> queryParamList(Long gid,Long cid,Boolean searching){
         SpecParam specParam = new SpecParam();
         specParam.setGroupId(gid);
-
-        List<SpecParam> list = Param.select(specParam);
+        specParam.setCid(cid);
+        specParam.setSearching(searching);
+        List<SpecParam> list = specParamMapper.select(specParam);
 
         if (CollectionUtils.isEmpty(list)){
             //没查到
