@@ -20,10 +20,7 @@ import org.springframework.util.CollectionUtils;
 import tk.mybatis.mapper.entity.Example;
 
 import java.beans.Transient;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,9 +30,9 @@ public class GoodService {
     @Autowired
     private SpuDetailMapper spuDetailMapper;
     @Autowired
-    private  CategoryService categoryService;
+    private CategoryService categoryService;
     @Autowired
-    private  BrandService brandService;
+    private BrandService brandService;
     @Autowired
     private SkuMapper skuMapper;
     @Autowired
@@ -43,18 +40,18 @@ public class GoodService {
 
     public PageResult<Spu> queryBradByPage(Integer page, Integer rows, Boolean saleable, Boolean desc, String key){
         //分页
-        PageHelper.startPage(page,rows);
+        PageHelper.startPage(page, rows);
         //过滤
         Example example = new Example(Spu.class);
         //搜索字段过滤
         Example.Criteria criteria = example.createCriteria();
-        if (StringUtils.isNotBlank(key)){
-            criteria.andLike("title","%"+key+"%");
+        if (StringUtils.isNotBlank(key)) {
+            criteria.andLike("title", "%" + key + "%");
         }
 
         //上下架过滤
-        if (saleable!=null){
-            criteria.andEqualTo("saleable",saleable);
+        if (saleable != null) {
+            criteria.andEqualTo("saleable", saleable);
         }
         //默认排序
         example.setOrderByClause("last_update_time DESC");
@@ -63,15 +60,15 @@ public class GoodService {
 
 
         //判断
-        if (CollectionUtils.isEmpty(spus)){
-            throw  new LyException(ExceptionEnum.GOODS_NOT_FOND);
+        if (CollectionUtils.isEmpty(spus)) {
+            throw new LyException(ExceptionEnum.GOODS_NOT_FOND);
         }
         //解析分类和品牌的名称
         loadCategoryAndBrandName(spus);
 
         //解析分页结果
         PageInfo<Spu> info = new PageInfo<>(spus);
-        return  new PageResult<>(info.getTotal(),spus);
+        return new PageResult<>(info.getTotal(), spus);
 
     }
 
@@ -79,7 +76,7 @@ public class GoodService {
         for (Spu spu : spus) {
             //处理分类名称
             List<String> names = categoryService.queryByIds(Arrays.asList(spu.getCid1(), spu.getCid2(), spu.getCid3())).stream().map(Category::getName).collect(Collectors.toList());
-            spu.setCname(StringUtils.join(names,"/"));
+            spu.setCname(StringUtils.join(names, "/"));
             //处理品牌名称
             spu.setBname(brandService.queryById(spu.getBrandId()).getName());
         }
@@ -87,6 +84,11 @@ public class GoodService {
 
     @Transactional
     public void saveGoods(Spu spu){
+        SaveSkuAndStock(spu);
+
+    }
+
+    private void SaveSkuAndStock(Spu spu){
         //新增Spu
         spu.setCreateTime(new Date());
         spu.setId(null);
@@ -94,8 +96,8 @@ public class GoodService {
         spu.setSaleable(true);
         spu.setValid(false);
         int insert = spuMapper.insert(spu);
-        if (insert!=1 ){
-            throw  new LyException(ExceptionEnum.GOOD_SAVE_ERROR);
+        if (insert != 1) {
+            throw new LyException(ExceptionEnum.GOOD_SAVE_ERROR);
         }
         //新增 datail
         SpuDetail spuDetail = spu.getSpuDetail();
@@ -114,8 +116,8 @@ public class GoodService {
             sku.setSpuId(spu.getId());
             insert = skuMapper.insert(sku);
 
-            if (insert!=1 ){
-                throw  new LyException(ExceptionEnum.GOOD_SAVE_ERROR);
+            if (insert == 0) {
+                throw new LyException(ExceptionEnum.GOOD_SAVE_ERROR);
             }
             //新增库存
             Stock stock = new Stock();
@@ -126,7 +128,110 @@ public class GoodService {
 
         }
         //批量添加库存
-        stockMapper.insertList(StockList);
+        insert = stockMapper.insertList(StockList);
+        if (insert == 0) {
+            throw new LyException(ExceptionEnum.GOOD_SAVE_ERROR);
+        }
+    }
+
+
+    @Transactional
+    public void updateGoods(Spu spu){
+        if (spu.getId() == null) {
+            throw new LyException(ExceptionEnum.GOOD_ID_CANNOT_BE_NULL);
+        }
+        Sku sku = new Sku();
+        sku.setSpuId(spu.getId());
+        //查询cku
+        List<Sku> selectList = skuMapper.select(sku);
+        if (!CollectionUtils.isEmpty(selectList)) {
+            //删除sku
+            skuMapper.delete(sku);
+            //删除stock
+            List<Long> ids = selectList.stream().map(Sku::getId).collect(Collectors.toList());
+            stockMapper.deleteByIdList(ids);
+        }
+
+        //修改spu
+        spu.setValid(null);
+        spu.setSaleable(null);
+        spu.setLastUpdateTime(new Date());
+        int count = spuMapper.updateByPrimaryKeySelective(spu);
+        if (count != 1) {
+            throw new LyException(ExceptionEnum.GOOD_UPDATE_ERROR);
+        }
+        //修改detail
+        count = spuDetailMapper.updateByPrimaryKeySelective(spu.getSpuDetail());
+
+        if (count != 1) {
+            throw new LyException(ExceptionEnum.GOOD_UPDATE_ERROR);
+        }
+        SaveSkuAndStock(spu);
+
+    }
+
+
+    public SpuDetail queryDateilById(Long spuId){
+        SpuDetail spuDetail = spuDetailMapper.selectByPrimaryKey(spuId);
+        if (spuDetail == null) {
+            throw new LyException(ExceptionEnum.SPEC_DATEIL_NOT_FOND);
+        }
+        return spuDetail;
+    }
+
+    public List<Sku> querySkuBySpuId(Long spuId){
+        //查询sku
+        Sku sku = new Sku();
+        sku.setSpuId(spuId);
+        List<Sku> skus = skuMapper.select(sku);
+
+        if (CollectionUtils.isEmpty(skus)) {
+            throw new LyException(ExceptionEnum.SPEC_SKU_NOT_FOND);
+        }
+        //查询库存
+  /*      for (Sku s : skus) {
+
+            Stock stock = (Stock) stockMapper.selectByPrimaryKey(s.getId());
+            if (stock==null){
+                throw  new LyException(ExceptionEnum.SPEC_STOCK_NOT_FOND);
+            }
+            s.setStock(stock.getStock());
+        }*/
+
+        List<Long> ids = skus.stream().map(Sku::getId).collect(Collectors.toList());
+        List<Stock> stocklist = stockMapper.selectByIdList(ids);
+
+        if (CollectionUtils.isEmpty(stocklist)) {
+            throw new LyException(ExceptionEnum.SPEC_STOCK_NOT_FOND);
+        }
+
+        //我们把srock 变成 一个map 其实key sku 的id 就是库存值
+        Map<Long, Integer> stockMap =
+                stocklist.stream().collect(Collectors.toMap(Stock::getSkuId, Stock::getStock));
+        skus.forEach(s -> s.setStock(stockMap.get(s.getId())));
+
+
+        return skus;
+
+    }
+
+    @Transactional
+    public void delGoods(Long id){
+        Sku sku = new Sku();
+        sku.setSpuId(id);
+        //删除sku
+        int delete = skuMapper.delete(sku);
+        //删除spu
+        Spu spu = new Spu();
+        spu.setId(id);
+        delete = spuMapper.delete(spu);
+        //删除SpuDetail
+        SpuDetail spuDetail = new SpuDetail();
+        spuDetail.setSpuId(id);
+        delete = spuDetailMapper.delete(spuDetail);
+        if (delete == 0) {
+            throw new LyException(ExceptionEnum.DEL_GOODS_ERROR);
+        }
 
 
     }

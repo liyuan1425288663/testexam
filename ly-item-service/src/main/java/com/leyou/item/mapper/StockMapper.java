@@ -1,10 +1,14 @@
 package com.leyou.item.mapper;
 
 
+
+
+import com.leyou.common.mapper.BaseMapper;
 import com.leyou.entity.Stock;
+import org.apache.ibatis.annotations.Mapper;
 
-import tk.mybatis.mapper.additional.insert.InsertListMapper;
 
 
-public interface StockMapper extends InsertListMapper<Stock> {
+public interface StockMapper extends BaseMapper<Stock> {
+
 }
