@@ -11,7 +11,7 @@ import com.leyou.item.mapper.SkuMapper;
 import com.leyou.item.mapper.SpuDetailMapper;
 import com.leyou.item.mapper.SpuMapper;
 import com.leyou.item.mapper.StockMapper;
-import com.sun.org.apache.xpath.internal.operations.Lt;
+
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -104,6 +104,7 @@ public class GoodService {
         spuDetail.setSpuId(spu.getId());
         spuDetailMapper.insert(spuDetail);
         //新增sku
+
         //定义库存集合
 
         ArrayList<Stock> StockList = new ArrayList<>();
@@ -137,19 +138,23 @@ public class GoodService {
 
     @Transactional
     public void updateGoods(Spu spu){
+        Long oldid = spu.getId();
         if (spu.getId() == null) {
             throw new LyException(ExceptionEnum.GOOD_ID_CANNOT_BE_NULL);
         }
         Sku sku = new Sku();
         sku.setSpuId(spu.getId());
-        //查询cku
+        SpuDetail spuDetail = new SpuDetail();
+        spuDetail.setSpuId(spu.getId());
+        //查询sku
         List<Sku> selectList = skuMapper.select(sku);
         if (!CollectionUtils.isEmpty(selectList)) {
+
             //删除sku
-            skuMapper.delete(sku);
+            int   delete = skuMapper.delete(sku);
             //删除stock
             List<Long> ids = selectList.stream().map(Sku::getId).collect(Collectors.toList());
-            stockMapper.deleteByIdList(ids);
+            int i = stockMapper.deleteByIdList(ids);
         }
 
         //修改spu
@@ -167,6 +172,12 @@ public class GoodService {
             throw new LyException(ExceptionEnum.GOOD_UPDATE_ERROR);
         }
         SaveSkuAndStock(spu);
+
+
+        //删除  old spu
+        spuMapper.deleteByPrimaryKey(oldid);
+   //   删除spuDetaile
+       spuDetailMapper.deleteByPrimaryKey(oldid);
 
     }
 
@@ -215,8 +226,9 @@ public class GoodService {
 
     }
 
+
     @Transactional
-    public void delGoods(Long id){
+    public Integer delGoods(Long id){
         Sku sku = new Sku();
         sku.setSpuId(id);
         //删除sku
@@ -232,7 +244,13 @@ public class GoodService {
         if (delete == 0) {
             throw new LyException(ExceptionEnum.DEL_GOODS_ERROR);
         }
+        return delete;
+    }
 
 
+
+    public void editshelf(Long id, Integer sal){
+
+        spuMapper.editshelf(id,sal);
     }
 }

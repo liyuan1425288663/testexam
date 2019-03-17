@@ -58,7 +58,7 @@ public class GoodsController {
 
 
     /**
-     * 商品新增
+     * 商品修改
      * @param spu
      * @return
      */
@@ -79,14 +79,27 @@ public class GoodsController {
     }
     @GetMapping("/sku/list")
     public ResponseEntity<List<Sku>> querySkuBySpuId(@RequestParam("id") Long spuId){
-          return   ResponseEntity.ok(goodService.querySkuBySpuId(spuId));
+        return   ResponseEntity.ok(goodService.querySkuBySpuId(spuId));
     }
 
-    @GetMapping("/spu/del")
+    @GetMapping("/spu/delGoods")
     public ResponseEntity<Integer> delGoods(@RequestParam("id") Long id){
 
         return   ResponseEntity.ok(goodService.delGoods(id));
     }
+    @GetMapping("/spu/editshelf")
+    public ResponseEntity<Void>  editshelf(@RequestParam("id") Long id,
+                                           @RequestParam("saleable")Boolean saleable){
+        //ture 修改成 0 false 修改成1
+        Integer sal=0;
+          if (saleable){
+              sal=0;
+          }else{
+              sal=1;
+          }
+        goodService.editshelf(id,sal);
+        return  ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 
+    }
 
 }
